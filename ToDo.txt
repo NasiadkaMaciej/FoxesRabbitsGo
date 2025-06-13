@@ -1,0 +1,1 @@
+Map or grid or array[][] with animals to simplify checking occupied
