@@ -22,13 +22,12 @@ func NewGrass(cfg *config.Config) *Grass {
 
 func (g *Grass) Grow() {
 	if g.Amount < g.MaxAmount {
-		// Grass is depleted - increment regrowth timer
 		g.RegrowthTimer++
 
 		// Start regrowing after timer reaches threshold
 		if g.RegrowthTimer >= g.Config.GrassRegrowthTimer {
-			g.Amount += g.GrowthRate // Start with just 1 unit
-			g.RegrowthTimer = 0      // Reset timer
+			g.Amount += g.GrowthRate
+			g.RegrowthTimer = 0
 		}
 	}
 }

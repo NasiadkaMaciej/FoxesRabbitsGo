@@ -35,7 +35,6 @@ func NewWorld(cfg *config.Config) *World {
 	return world
 }
 
-// Update advances the simulation one step
 func (w *World) Update() {
 	// Update and collect new animals
 	var newFoxes []*Fox

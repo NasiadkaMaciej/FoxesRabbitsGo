@@ -29,55 +29,42 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Failed to initialize renderer: %s\n", err)
 		os.Exit(1)
 	}
-	defer renderer.Destroy()
 
-	// Create chart window
 	chartWindow, err := chart.NewChartWindow("Population Chart", cfg.WorldWidth*cfg.AnimalSize, cfg.WorldHeight*cfg.AnimalSize)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize chart window: %s\n", err)
 		os.Exit(1)
 	}
-	defer chartWindow.Destroy()
 
-	// Add initial data point
 	chartWindow.AddDataPoint(len(world.Foxes), len(world.Rabbits))
 
 	frameDelay := cfg.FrameTime * time.Millisecond
 
-	for renderer.IsRunning() && chartWindow.IsRunning() {
-		renderer.HandleEvents()
-		chartWindow.HandleEvents()
+	for {
+		// Handle events in both windows
+		mouseAction := renderer.HandleEvents()
 
-		// Check for mouse events to add animals
-		mouseEvent := renderer.GetMouseEvent()
-		if mouseEvent.Triggered {
-			x, y := mouseEvent.GridX, mouseEvent.GridY
-
-			// Only add if position is not occupied
-			if !world.IsPositionOccupied(x, y) {
-				switch mouseEvent.Type {
-				case 1: // Left click - add rabbit
-					world.Rabbits = append(world.Rabbits, simulation.NewRabbit(x, y, cfg))
-				case 2: // Right click - add fox
-					world.Foxes = append(world.Foxes, simulation.NewFox(x, y, cfg))
-				}
+		// Process mouse actions
+		if mouseAction.Action != "" && !world.IsPositionOccupied(mouseAction.X, mouseAction.Y) {
+			switch mouseAction.Action {
+			case "AddRabbit":
+				world.Rabbits = append(world.Rabbits, simulation.NewRabbit(mouseAction.X, mouseAction.Y, cfg))
+			case "AddFox":
+				world.Foxes = append(world.Foxes, simulation.NewFox(mouseAction.X, mouseAction.Y, cfg))
 			}
 		}
 
-		// Update window title with current counts
-		title := fmt.Sprintf("Foxes and Rabbits Simulation - Foxes: %d | Rabbits: %d",
-			len(world.Foxes), len(world.Rabbits))
-		renderer.SetTitle(title)
-
-		// Update chart window title
-		chartWindow.SetTitle(fmt.Sprintf("Population Chart - Foxes: %d | Rabbits: %d",
-			len(world.Foxes), len(world.Rabbits)))
-
-		renderer.Render(world)
+		// Update simulation and UI
 		world.Update()
 
-		// Update chart with new data
-		chartWindow.AddDataPoint(len(world.Foxes), len(world.Rabbits))
+		// Update titles
+		foxCount, rabbitCount := len(world.Foxes), len(world.Rabbits)
+		renderer.SetTitle(fmt.Sprintf("Foxes and Rabbits Simulation - Foxes: %d | Rabbits: %d", foxCount, rabbitCount))
+		chartWindow.SetTitle(fmt.Sprintf("Population Chart - Foxes: %d | Rabbits: %d", foxCount, rabbitCount))
+
+		// Render windows
+		renderer.Render(world)
+		chartWindow.AddDataPoint(foxCount, rabbitCount)
 		chartWindow.Render()
 
 		time.Sleep(frameDelay)

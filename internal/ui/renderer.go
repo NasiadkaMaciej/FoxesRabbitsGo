@@ -7,19 +7,18 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-type Renderer struct {
-	window     *sdl.Window
-	renderer   *sdl.Renderer
-	running    bool
-	config     *config.Config
-	MouseEvent MouseEvent
+type MouseAction struct {
+	Action string // "AddFox", "AddRabbit", or "" // ToDo: "RemoveAnimal"?
+	X      int
+	Y      int
 }
 
-type MouseEvent struct {
-	Type      int8 // 1 for left click, 2 for right click
-	GridX     int
-	GridY     int
-	Triggered bool
+type Renderer struct {
+	window         *sdl.Window
+	renderer       *sdl.Renderer
+	config         *config.Config
+	leftMouseDown  bool
+	rightMouseDown bool
 }
 
 func NewRenderer(title string, width, height int, cfg *config.Config) (*Renderer, error) {
@@ -31,55 +30,48 @@ func NewRenderer(title string, width, height int, cfg *config.Config) (*Renderer
 
 	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
-		window.Destroy()
 		return nil, err
 	}
 
 	return &Renderer{
 		window:   window,
 		renderer: renderer,
-		running:  true,
 		config:   cfg,
 	}, nil
 }
 
-func (r *Renderer) HandleEvents() {
-	// Reset mouse event
-	r.MouseEvent.Triggered = false
+func (r *Renderer) HandleEvents() MouseAction {
+	var action MouseAction
 
 	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 		switch e := event.(type) {
-		case *sdl.QuitEvent:
-			r.running = false
 		case *sdl.MouseButtonEvent:
 			if e.Type == sdl.MOUSEBUTTONDOWN {
-				// Convert pixel coordinates to grid coordinates
-				gridX := int(e.X) / r.config.AnimalSize
-				gridY := int(e.Y) / r.config.AnimalSize
-
-				// Check if coordinates are within bounds
-				if gridX >= 0 && gridX < r.config.WorldWidth &&
-					gridY >= 0 && gridY < r.config.WorldHeight {
-
-					r.MouseEvent.GridX = gridX
-					r.MouseEvent.GridY = gridY
-					r.MouseEvent.Triggered = true
-
-					if e.Button == sdl.BUTTON_LEFT {
-						r.MouseEvent.Type = 1 // Left click
-					} else if e.Button == sdl.BUTTON_RIGHT {
-						r.MouseEvent.Type = 2 // Right click
-					}
+				r.leftMouseDown = e.Button == sdl.BUTTON_LEFT
+				r.rightMouseDown = e.Button == sdl.BUTTON_RIGHT
+			} else if e.Type == sdl.MOUSEBUTTONUP {
+				if e.Button == sdl.BUTTON_LEFT {
+					r.leftMouseDown = false
+				} else if e.Button == sdl.BUTTON_RIGHT {
+					r.rightMouseDown = false
 				}
 			}
 		}
 	}
-}
 
-func (r *Renderer) GetMouseEvent() MouseEvent {
-	event := r.MouseEvent
-	r.MouseEvent.Triggered = false
-	return event
+	if r.leftMouseDown || r.rightMouseDown {
+		mouseX, mouseY, _ := sdl.GetMouseState()
+		gridX := int(mouseX) / r.config.AnimalSize
+		gridY := int(mouseY) / r.config.AnimalSize
+
+		if r.leftMouseDown {
+			action = MouseAction{Action: "AddRabbit", X: gridX, Y: gridY}
+		} else if r.rightMouseDown {
+			action = MouseAction{Action: "AddFox", X: gridX, Y: gridY}
+		}
+	}
+
+	return action
 }
 
 func (r *Renderer) Render(world *simulation.World) {
@@ -96,26 +88,17 @@ func (r *Renderer) Render(world *simulation.World) {
 
 	// Draw rabbits and foxes
 	for _, rabbit := range world.Rabbits {
-		r.drawRabbit(rabbit.Position.X, rabbit.Position.Y)
+		r.drawAnimal(rabbit.Position.X, rabbit.Position.Y, rabbit.Config.RabbitColor)
 	}
 
 	for _, fox := range world.Foxes {
-		r.drawFox(fox.Position.X, fox.Position.Y)
+		r.drawAnimal(fox.Position.X, fox.Position.Y, fox.Config.FoxColor)
 	}
 
 	r.renderer.Present()
 }
 
-func (r *Renderer) drawFox(x, y int) {
-	color := r.config.FoxColor
-	r.renderer.SetDrawColor(color.R, color.G, color.B, color.A)
-	size := r.config.AnimalSize
-	rect := sdl.Rect{X: int32(x * size), Y: int32(y * size), W: int32(size), H: int32(size)}
-	r.renderer.FillRect(&rect)
-}
-
-func (r *Renderer) drawRabbit(x, y int) {
-	color := r.config.RabbitColor
+func (r *Renderer) drawAnimal(x, y int, color sdl.Color) {
 	r.renderer.SetDrawColor(color.R, color.G, color.B, color.A)
 	size := r.config.AnimalSize
 	rect := sdl.Rect{X: int32(x * size), Y: int32(y * size), W: int32(size), H: int32(size)}
@@ -126,7 +109,7 @@ func (r *Renderer) drawGrass(x, y int, amount int) {
 	// Clamp amount between 0 and max
 	amount = max(0, min(amount, r.config.GrassMaxAmount))
 
-	// Calculate green intensity - fix the type mismatch
+	// Calculate green intensity
 	baseColor := r.config.GrassBaseColor
 	ratio := float64(amount) / float64(r.config.GrassMaxAmount)
 	greenValue := uint8(float64(baseColor.G) + ratio*(255.0-float64(baseColor.G)))
@@ -136,15 +119,6 @@ func (r *Renderer) drawGrass(x, y int, amount int) {
 	size := r.config.AnimalSize
 	rect := sdl.Rect{X: int32(x * size), Y: int32(y * size), W: int32(size), H: int32(size)}
 	r.renderer.FillRect(&rect)
-}
-
-func (r *Renderer) IsRunning() bool {
-	return r.running
-}
-
-func (r *Renderer) Destroy() {
-	r.renderer.Destroy()
-	r.window.Destroy()
 }
 
 func (r *Renderer) SetTitle(title string) {

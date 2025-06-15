@@ -4,11 +4,9 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// ChartWindow manages the chart display
 type ChartWindow struct {
 	window    *sdl.Window
 	renderer  *sdl.Renderer
-	running   bool
 	data      []struct{ Foxes, Rabbits int }
 	maxPoints int
 	width     int32
@@ -16,7 +14,6 @@ type ChartWindow struct {
 	padding   int32
 }
 
-// NewChartWindow creates a new chart window
 func NewChartWindow(title string, width, height int) (*ChartWindow, error) {
 	window, err := sdl.CreateWindow(title, sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		int32(width), int32(height), sdl.WINDOW_SHOWN)
@@ -26,14 +23,12 @@ func NewChartWindow(title string, width, height int) (*ChartWindow, error) {
 
 	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
-		window.Destroy()
 		return nil, err
 	}
 
 	return &ChartWindow{
 		window:    window,
 		renderer:  renderer,
-		running:   true,
 		data:      make([]struct{ Foxes, Rabbits int }, 0),
 		maxPoints: 300,
 		width:     int32(width),
@@ -42,7 +37,6 @@ func NewChartWindow(title string, width, height int) (*ChartWindow, error) {
 	}, nil
 }
 
-// AddDataPoint adds a new data point to the chart
 func (c *ChartWindow) AddDataPoint(foxes, rabbits int) {
 	c.data = append(c.data, struct{ Foxes, Rabbits int }{foxes, rabbits})
 	if len(c.data) > c.maxPoints {
@@ -50,22 +44,6 @@ func (c *ChartWindow) AddDataPoint(foxes, rabbits int) {
 	}
 }
 
-// HandleEvents processes SDL events for the chart window
-func (c *ChartWindow) HandleEvents() {
-	for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-		if event.GetType() == sdl.QUIT {
-			c.running = false
-			return
-		}
-	}
-}
-
-// IsRunning returns whether the chart window is still running
-func (c *ChartWindow) IsRunning() bool {
-	return c.running
-}
-
-// Render draws the chart
 func (c *ChartWindow) Render() {
 	c.renderer.SetDrawColor(255, 255, 255, 255)
 	c.renderer.Clear()
@@ -86,13 +64,11 @@ func (c *ChartWindow) Render() {
 		}
 	}
 
-	// Round up to nice scale
 	maxValue = ((maxValue + 9) / 10) * 10
 
 	chartWidth := c.width - 2*c.padding
 	chartHeight := c.height - 2*c.padding
 
-	// Draw grid
 	c.renderer.SetDrawColor(200, 200, 200, 255)
 
 	// Horizontal grid lines
@@ -120,12 +96,10 @@ func (c *ChartWindow) Render() {
 		c.renderer.DrawLine(xPos, c.padding, xPos, c.height-c.padding)
 	}
 
-	// Draw axes
 	c.renderer.SetDrawColor(0, 0, 0, 255)
 	c.renderer.DrawLine(c.padding, c.padding, c.padding, c.height-c.padding)                  // Y axis
 	c.renderer.DrawLine(c.padding, c.height-c.padding, c.width-c.padding, c.height-c.padding) // X axis
 
-	// Calculate point spacing
 	xStep := float64(chartWidth) / float64(c.maxPoints-1)
 
 	// Draw fox population (red)
@@ -151,13 +125,6 @@ func (c *ChartWindow) Render() {
 	c.renderer.Present()
 }
 
-// Destroy cleans up resources
-func (c *ChartWindow) Destroy() {
-	c.renderer.Destroy()
-	c.window.Destroy()
-}
-
-// SetTitle sets the window title
 func (c *ChartWindow) SetTitle(title string) {
 	c.window.SetTitle(title)
 }

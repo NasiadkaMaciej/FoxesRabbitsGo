@@ -1,1 +1,1 @@
-Map or grid or array[][] with animals to simplify checking occupied
+Fox: When low energy, use less energy per move?

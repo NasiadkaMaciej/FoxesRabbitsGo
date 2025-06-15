@@ -19,7 +19,6 @@ func NewRabbit(x, y int, cfg *config.Config) *Rabbit {
 }
 
 func (r *Rabbit) Move(world *World) {
-	// Look for nearby foxes
 	nearestFox, foundFox := FindNearestAnimal(r, world.Foxes, r.Config.RabbitEscapeRange)
 
 	// If found a fox within range, try to move away from it
@@ -30,31 +29,26 @@ func (r *Rabbit) Move(world *World) {
 		r.MoveRandomly(world)
 	}
 
-	// Energy decreases regardless of movement
 	r.Energy -= r.Config.RabbitEnergyLossPerMove
 }
 
 func (r *Rabbit) Eat(grass *Grass) {
-	// Increment turns since last eaten
 	r.TurnsSinceEaten++
 
-	// Check if rabbit can eat based on cooldown
 	if !r.CanEat(r.Config.RabbitEatingCooldown) {
 		return
 	}
 
 	if grass.Amount > 0 {
-		grass.Eat(1) // Eat one unit of grass
+		grass.Eat(1)
 		r.Energy += r.Config.RabbitEnergyGainFromGrass
 		r.TurnsSinceEaten = 0
 	}
 }
 
 func (r *Rabbit) Reproduce(world *World) *Rabbit {
-	// Increment turns since last reproduction
 	r.TurnsSinceReproduction++
 
-	// Check if rabbit can reproduce based on cooldown
 	if !r.CanReproduce(r.Config.RabbitReproductionCooldown) {
 		return nil
 	}
@@ -63,7 +57,6 @@ func (r *Rabbit) Reproduce(world *World) *Rabbit {
 		r.Energy -= r.Config.RabbitReproductionCost
 		r.TurnsSinceReproduction = 0
 
-		// Find an empty adjacent position for the new rabbit
 		if newX, newY, found := FindEmptyAdjacentPosition(r.Position, world, 8); found {
 			return NewRabbit(newX, newY, r.Config)
 		}
