@@ -1,51 +1,44 @@
-# Symulacja Lisów i Królików
+# Foxes and Rabbits Simulation
 
-## Opis projektu
-Projekt przedstawia symulację ekosystemu, w którym lisy oraz króliki współistnieją w środowisku z odrastającą trawą.
+| Main simulation view | Population chart |
+| ---- | ----------- |
+| ![](https://nasiadka.pl/projects/FoxesRabbitsGo/main.png) | ![](https://nasiadka.pl/projects/FoxesRabbitsGo/chart.png) |
 
-## Funkcjonalności
-- Interaktywna symulacja z wizualizacją graficzną
-- Lisy polują na króliki dla energii
-- Króliki jedzą trawę i uciekają przed lisami. Mogą "potknąć" się uciekając
-- Zwierzęta mogą się rozmnażać gdy spełnione są odpowiednie warunki
-  - Warunki rozmnażania lisów:
-    - Energia lisa musi być wyższa niż koszt reprodukcji
-    - W pobliżu musi znajdować się inny lis
-    - Od poprzedniej reprodukcji musi upłynąć określona ilość tur
-  - Warunki rozmnażania królików:
-    - Energia królika musi być wyższa niż koszt reprodukcji
-    - W pobliżu musi znajdować się inny królik
-    - Od poprzedniej reprodukcji musi upłynąć określona liczba tur
-- Trawa odrasta z czasem
-  - Gdy trawa zostanie zjedzona, rozpoczyna się odliczanie do jej odrośnięcia
-  - Trawa odrasta do określonej ilości w jednym polu
 
-## Instalacja
+## Project Description
+This project presents an ecosystem simulation in which foxes and rabbits coexist in an environment with regrowable grass.
+
+## Features
+- Interactive simulation with graphical visualization
+- Foxes hunt rabbits for energy
+- Rabbits eat grass and flee from foxes. They may "stumble" while fleeing
+- Animals can reproduce when appropriate conditions are met
+  - Fox reproduction conditions:
+    - Fox energy must be higher than reproduction cost
+    - Another fox must be nearby
+    - A specific number of turns must have passed since previous reproduction
+  - Rabbit reproduction conditions:
+    - Rabbit energy must be higher than reproduction cost
+    - Another rabbit must be nearby
+    - A specific number of turns must have passed since previous reproduction
+- Grass regrows over time
+  - When grass is eaten, a countdown to its regrowth begins
+  - Grass regrows to a specific amount in one cell
+
+## Installation
 ```bash
 go mod init
 ```
 
-## Uruchomienie
+## Running
 ```bash
 go run main.go
 ```
 
-## Sterowanie
-- Lewy przycisk myszy: Dodaj królika
-- Prawy przycisk myszy: Dodaj lisa
-- Można "rysować"
+## Controls
+- Left mouse button: Add a rabbit
+- Right mouse button: Add a fox
+- You can "draw" animals
 
-## Konfiguracja
-Parametry symulacji można zmieniać w pliku config.go.
-
-## Ciekawe spostrzeżenia
-
-- Intrygująca zależność: króliki nie mogą żyć z lisami, ale lisy nie mogą żyć bez królików.
-
-- Presja drapieżników powoduje migrację królików. Mimo pewnych ofiar, śledzenie ich przez lisy nieraz potrafi posłużyć populacji królików. Powoduje to uciekanie królików w dalsze miejsca, co może pozwolić na uniknięcie krwawej rzezi w poprzednim miejscu bytowania. 
-
-- Bardzo duż wpływ na stabilność populacji obydwu gatunków było wprowadzenie "potknięć" podczas ucieczki. Królik uciekając przed lisem ma 20% szans na zostanie w miejscu.
-
-- Problematyczne mnożenie się królików "jak króliki" zostało unormowane przez ograniczenie dostępności trawy: maksymalnie 2 w jednym miejscu z długim czasem odrastania.
-
-- Przy aktualnych ustawieniach, udało mi się doprowadzić do dobrej stabilizacji symulacji. W większości wypadków symulacja trwa bez końca z obydwoma gatunkami.
+## Configuration
+Simulation parameters can be changed in the config.go file.
